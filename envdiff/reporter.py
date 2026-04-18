@@ -38,6 +38,14 @@ class ComparisonReport:
             )
         return lines
 
+    def targets_with_differences(self) -> List[str]:
+        """Return a list of target paths that have at least one difference."""
+        return [
+            target
+            for target, result in self.results.items()
+            if result.has_differences
+        ]
+
 
 def build_report(
     base_path: str,
