@@ -1,51 +1,53 @@
-"""Patch a target .env file by adding keys missing from the base."""
+"""Apply patches to env files: add missing keys, update values."""
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Mapping
 
 from envdiff.parser import parse_env_file
 
 
 def patch_env(
-    base: Dict[str, str],
-    target: Dict[str, str],
-    placeholder: str = "",
-) -> Dict[str, str]:
-    """Return a copy of *target* with missing keys added (set to *placeholder*)."""
-    patched = dict(target)
-    for key, value in base.items():
-        if key not in patched:
-            patched[key] = placeholder
-    return patched
+    original: Mapping[str, str],
+    patch: Mapping[str, str],
+    overwrite: bool = False,
+) -> dict[str, str]:
+    """Return a new env dict with *patch* applied to *original*.
+
+    If *overwrite* is False (default) only missing keys are added.
+    If *overwrite* is True existing keys are also updated.
+    """
+    result = dict(original)
+    for key, value in patch.items():
+        if overwrite or key not in result:
+            result[key] = value
+    return result
 
 
 def patch_file(
-    base_path: Path,
-    target_path: Path,
-    output_path: Optional[Path] = None,
-    placeholder: str = "",
-    dry_run: bool = False,
-) -> List[str]:
-    """Patch *target_path* with keys from *base_path*.
+    target: str | Path,
+    patch: Mapping[str, str],
+    overwrite: bool = False,
+    output: str | Path | None = None,
+) -> Path:
+    """Read *target*, apply *patch*, write result to *output* (or in-place).
 
-    Returns list of keys that were added.
-    When *dry_run* is True the file is not written.
-    When *output_path* is None the target file is updated in-place.
+    Returns the path that was written.
     """
-    base = parse_env_file(base_path)
-    target = parse_env_file(target_path)
+    target = Path(target)
+    original = parse_env_file(target)
+    patched = patch_env(original, patch, overwrite=overwrite)
 
-    added = [k for k in base if k not in target]
-    if not added:
-        return []
+    out_path = Path(output) if output else target
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    patched = patch_env(base, target, placeholder=placeholder)
+    lines: list[str] = []
+    for key, value in patched.items():
+        # Quote values that contain spaces
+        if " " in value:
+            lines.append(f'{key}="{value}"')
+        else:
+            lines.append(f"{key}={value}")
 
-    if not dry_run:
-        dest = output_path or target_path
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        lines = [f"{k}={v}" for k, v in patched.items()]
-        dest.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-    return sorted(added)
+    out_path.write_text("\n".join(lines) + "\n")
+    return out_path
