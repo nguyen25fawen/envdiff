@@ -61,3 +61,12 @@ def test_show_values_flag_accepted(tmp_env, capsys):
     f2 = tmp_env("b.env", "KEY=foo\n")
     rc = main([str(f1), str(f2), "--show-values"])
     assert rc == 0
+
+
+def test_missing_key_output_contains_key_name(tmp_env, capsys):
+    """Verify that the key name missing from one file appears in the output."""
+    f1 = tmp_env("a.env", "KEY=value\nMISSING_KEY=x\n")
+    f2 = tmp_env("b.env", "KEY=value\n")
+    main([str(f1), str(f2)])
+    captured = capsys.readouterr()
+    assert "MISSING_KEY" in captured.out or "MISSING_KEY" in captured.err
