@@ -47,6 +47,16 @@ def test_to_json_no_differences():
     assert comp["mismatched"] == []
 
 
+def test_to_json_multiple_targets():
+    """Ensure all targets are included when a report has multiple diffs."""
+    report = ComparisonReport(base_name=".env.base")
+    report.diffs["staging"] = DiffResult({"A"}, set(), {})
+    report.diffs["prod"] = DiffResult(set(), {"B"}, {})
+    result = json.loads(to_json(report))
+    targets = {comp["target"] for comp in result["comparisons"]}
+    assert targets == {"staging", "prod"}
+
+
 def test_to_csv_headers():
     report = _make_report()
     reader = csv.DictReader(io.StringIO(to_csv(report)))
