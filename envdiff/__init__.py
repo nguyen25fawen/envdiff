@@ -1,0 +1,4 @@
+"""envdiff — compare .env files across environments."""
+
+__version__ = "0.1.0"
+__all__ = ["__version__"]
