@@ -56,3 +56,23 @@ def format_diff(
             lines.append(display)
 
     return "\n".join(lines)
+
+
+def format_summary(result: DiffResult, use_color: bool = True) -> str:
+    """Render a one-line summary of the DiffResult.
+
+    Useful for quick status output in scripts or CI pipelines.
+    """
+    if not result.has_differences:
+        return _colored("OK: environments match.", ANSI_GREEN, use_color)
+
+    parts = []
+    if result.missing_in_second:
+        parts.append(f"{len(result.missing_in_second)} missing in second")
+    if result.missing_in_first:
+        parts.append(f"{len(result.missing_in_first)} missing in first")
+    if result.value_mismatches:
+        parts.append(f"{len(result.value_mismatches)} value mismatch(es)")
+
+    summary = "DIFF: " + ", ".join(parts) + "."
+    return _colored(summary, ANSI_RED, use_color)
