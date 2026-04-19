@@ -49,3 +49,10 @@ def test_write_to_stdout_csv(capsys):
     write_export(_make_report(), "csv", None)
     captured = capsys.readouterr()
     assert "issue_type" in captured.out
+
+
+def test_write_unsupported_format_raises(tmp_path):
+    """Unsupported format strings should raise a ValueError."""
+    out = tmp_path / "result.xml"
+    with pytest.raises(ValueError, match="xml"):
+        write_export(_make_report(), "xml", str(out))
