@@ -69,6 +69,17 @@ def test_sort_keys_by_severity_alpha_within_tier():
     assert ordered == ["A_KEY", "M_KEY", "Z_KEY"]
 
 
+def test_sort_keys_by_severity_all_tiers_alpha_within_tier():
+    """Keys within each severity tier should be sorted alphabetically."""
+    result = _make_result(
+        missing_in_second=["Z_SEC", "A_SEC"],
+        missing_in_first=["Z_FIRST", "A_FIRST"],
+        mismatched={"Z_MISMATCH": ("a", "b"), "A_MISMATCH": ("x", "y")},
+    )
+    ordered = sort_keys_by_severity(result)
+    assert ordered == ["A_SEC", "Z_SEC", "A_FIRST", "Z_FIRST", "A_MISMATCH", "Z_MISMATCH"]
+
+
 def test_is_empty_false_when_has_data():
     grouped = GroupedDiffs(mismatched=["KEY"])
     assert not grouped.is_empty()
