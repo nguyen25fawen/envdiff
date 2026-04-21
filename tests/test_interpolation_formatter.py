@@ -60,3 +60,25 @@ def test_summary_all_resolved():
     )
     summary = format_interpolation_summary(r)
     assert "0" in summary or "unresolved" in summary.lower()
+
+
+def test_format_result_empty():
+    """An empty InterpolationResult should produce output without raising."""
+    r = InterpolationResult(resolved={}, unresolved={}, references={})
+    out = format_interpolation_result(r)
+    assert isinstance(out, str)
+    assert len(out) >= 0
+
+
+def test_format_result_multiple_unresolved_refs():
+    """Keys with multiple unresolved references should each appear in the output."""
+    r = InterpolationResult(
+        resolved={"DSN": "${USER}:${PASS}@${HOST}/db"},
+        unresolved={"DSN": ["USER", "PASS", "HOST"]},
+        references={"DSN": ["USER", "PASS", "HOST"]},
+    )
+    out = format_interpolation_result(r)
+    assert "DSN" in out
+    assert "USER" in out
+    assert "PASS" in out
+    assert "HOST" in out
