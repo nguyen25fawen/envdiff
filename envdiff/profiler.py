@@ -19,12 +19,28 @@ class EnvProfile:
 
 
 def profile_env(path: str | Path) -> EnvProfile:
-    """Parse a .env file and return a statistical profile."""
+    """Parse a .env file and return a statistical profile.
+
+    Args:
+        path: Path to the .env file to profile.
+
+    Returns:
+        An EnvProfile summarising key statistics of the file.
+
+    Raises:
+        FileNotFoundError: If the given path does not exist.
+        ValueError: If the path points to a directory rather than a file.
+    """
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"No such file: '{p}'")
+    if not p.is_file():
+        raise ValueError(f"Path is not a file: '{p}'")
+
     raw_lines: Dict[str, int] = {}
     duplicates: List[str] = []
     empty: List[str] = []
 
-    p = Path(path)
     for line in p.read_text().splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
