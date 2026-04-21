@@ -58,6 +58,22 @@ def test_trim_files(tmp_path):
     assert "B" in result.removed
 
 
+def test_trim_files_missing_target(tmp_path):
+    """trim_files should raise FileNotFoundError when the target file does not exist."""
+    target = tmp_path / ".env.missing"
+    ref = _write(tmp_path, ".env.ref", "A=x\n")
+    with pytest.raises(FileNotFoundError):
+        trim_files(target, ref)
+
+
+def test_trim_files_missing_ref(tmp_path):
+    """trim_files should raise FileNotFoundError when the reference file does not exist."""
+    target = _write(tmp_path, ".env.target", "A=1\n")
+    ref = tmp_path / ".env.missing"
+    with pytest.raises(FileNotFoundError):
+        trim_files(target, ref)
+
+
 def test_render_trimmed_format():
     result = TrimResult(kept={"FOO": "bar", "BAZ": "qux"})
     text = render_trimmed(result)
