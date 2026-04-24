@@ -51,3 +51,23 @@ def redact_many(
         name: redact(env, extra_patterns=extra_patterns, placeholder=placeholder)
         for name, env in envs.items()
     }
+
+
+def sensitive_keys(
+    env: Dict[str, str],
+    extra_patterns: List[str] | None = None,
+) -> List[str]:
+    """Return a sorted list of keys in env that match sensitive patterns.
+
+    Useful for auditing which keys would be redacted without modifying the dict.
+
+    Args:
+        env: The environment dictionary to inspect.
+        extra_patterns: Additional regex patterns to consider sensitive.
+
+    Returns:
+        A sorted list of matching key names.
+    """
+    all_patterns = DEFAULT_PATTERNS + (extra_patterns or [])
+    compiled = _compile(all_patterns)
+    return sorted(key for key in env if is_sensitive(key, compiled))
