@@ -51,6 +51,13 @@ def test_empty_required_always_valid():
     assert result.is_valid
 
 
+def test_strict_unknown_keys_sorted():
+    """Unknown keys reported in strict mode should be returned in sorted order."""
+    env = {"A": "1", "ZEBRA": "z", "MANGO": "m"}
+    result = validate(env, required=["A"], strict=True)
+    assert result.unknown_keys == ["MANGO", "ZEBRA"]
+
+
 # ---------------------------------------------------------------------------
 # load_required_keys()
 # ---------------------------------------------------------------------------
@@ -82,3 +89,10 @@ def test_load_skips_blank_lines(tmp_path):
 def test_load_empty_file(tmp_path):
     path = _write_schema(tmp_path, "")
     assert load_required_keys(path) == []
+
+
+def test_load_missing_file_raises(tmp_path):
+    """load_required_keys should raise FileNotFoundError for a non-existent path."""
+    missing_path = str(tmp_path / "does_not_exist.txt")
+    with pytest.raises(FileNotFoundError):
+        load_required_keys(missing_path)
